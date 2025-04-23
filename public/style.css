@@ -1,0 +1,273 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #0a5bd4;
+}
+.container {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  margin: 20px;
+}
+h2 {
+  text-align: center;
+  color: #333;
+}
+.form-group {
+  margin-bottom: 15px;
+}
+label {
+  display: block;
+  margin-bottom: 5px;
+  color: #555;
+}
+input, textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+button:hover {
+  background-color: #0056b3;
+}
+.toggle {
+  text-align: center;
+  margin-top: 10px;
+  color: #007bff;
+  cursor: pointer;
+}
+.toggle:hover {
+  text-decoration: underline;
+}
+.error {
+  color: red;
+  font-size: 14px;
+  margin-top: 5px;
+  display: none;
+}
+.dashboard {
+  text-align: center;
+}
+.dashboard button {
+  margin: 10px 0;
+}
+#emailForm {
+  display: none;
+}
+nav {
+  background-color: #007bff;
+  padding: 10px;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  color: white;
+  text-align: right;
+}
+nav button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  margin-right: 20px;
+}
+nav button:hover {
+  text-decoration: underline;
+}
+@media (max-width: 600px) {
+  .container {
+    max-width: 90%;
+  }
+}
+
+.toggle span {
+  color: #0066cc;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.toggle span:hover {
+  color: #004499;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+}
+
+button {
+  cursor: pointer;
+  padding: 8px 16px;
+}
+.blockchain-viewer {
+  font-family: 'Segoe UI', sans-serif;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.block-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease;
+}
+
+.block-card:hover {
+  transform: translateY(-5px);
+}
+
+.block-header {
+  padding: 12px 15px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+}
+
+.block-badge {
+  background: rgba(255,255,255,0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8em;
+}
+
+.block-body {
+  padding: 15px;
+}
+
+.block-footer {
+  padding: 10px 15px;
+  background: #f1f1f1;
+}
+
+.hash {
+  font-family: 'Courier New', monospace;
+  color: #666;
+  font-size: 0.9em;
+  word-break: break-all;
+}
+
+.genesis .block-header {
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+}
+
+/* Mining Animation */
+#mining-animation {
+  background: #2c3e50;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.mining-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mining-progress {
+  height: 10px;
+  background: #34495e;
+  border-radius: 5px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.mining-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #f39c12, #f1c40f);
+  transition: width 0.3s ease;
+}
+
+.mining-stats {
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+/* Hide elements by default */
+#blockchain-dashboard,
+#viewChainBtn,
+#chain-display {
+  display: none;
+}
+
+/* Only show when dashboard is visible */
+#dashboardContainer.active #blockchain-dashboard,
+#dashboardContainer.active #viewChainBtn,
+#dashboardContainer.active #chain-display {
+  display: block;
+}
+
+/* Health Dashboard styles remain the same */
+.health-dashboard {
+  background: #ecf0f1;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+/* Blockchain Elements (only visible when logged in) */
+#dashboardContainer.active #blockchain-dashboard,
+#dashboardContainer.active #viewChainBtn,
+#dashboardContainer.active #chain-display {
+    display: block;
+}
+
+.blocks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.block-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.block-header {
+    padding: 12px 15px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+}
+
+.genesis .block-header {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+}
