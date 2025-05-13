@@ -3,104 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Email Web App</title>
+  <title>ZapMail - Secure Blockchain Email</title>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="style.css">
-  <style>
-    /* Blockchain-specific styles */
-    #blockchainDashboard {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 8px;
-      margin: 20px 0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .health-metrics {
-      display: flex;
-      justify-content: space-around;
-      text-align: center;
-    }
-    
-    .metric {
-      padding: 0 15px;
-    }
-    
-    .metric-value {
-      font-size: 1.8em;
-      font-weight: bold;
-      display: block;
-    }
-    
-    .metric-label {
-      color: #666;
-      font-size: 0.9em;
-    }
-    
-    #viewChainBtn {
-      background: #764ba2;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 4px;
-      margin: 10px 0;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    
-    #viewChainBtn:hover {
-      background: #5d3a8a;
-    }
-    
-    #chain-display {
-      margin-top: 20px;
-    }
-    
-    .blocks {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
-      margin-top: 15px;
-    }
-    
-    .block {
-      background: white;
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .block h4 {
-      margin-bottom: 10px;
-      color: #333;
-    }
-    
-    .hash {
-      font-family: monospace;
-      color: #666;
-      font-size: 0.9em;
-      word-break: break-all;
-    }
-    
-    #chain-status.valid {
-      color: #2ecc71;
-    }
-    
-    #chain-status.invalid {
-      color: #e74c3c;
-    }
-  </style>
 </head>
 <body>
   <!-- Navigation Bar (shown after login) -->
-  <nav id="navBar" style="display: none;">
-    <button onclick="logout()">Logout</button>
+  <nav id="navBar" class="nav-bar hidden">
+    <div class="nav-container">
+      <h1 class="nav-logo">ZapMail</h1>
+      <div class="nav-links">
+        <button onclick="logout()" class="nav-button"><i class="fas fa-sign-out-alt nav-icon"></i>Logout</button>
+      </div>
+    </div>
   </nav>
 
   <!-- Auth Container (shown by default) -->
   <div id="authContainer" class="container">
     <!-- Login Form -->
-    <div id="loginForm">
-      <h2>Login</h2>
+    <div id="loginForm" class="form-transition">
+      <h2>Login to ZapMail</h2>
       <div class="form-group">
         <label for="loginEmail">Email</label>
         <input type="email" id="loginEmail" placeholder="Enter email" required>
@@ -109,14 +32,14 @@
         <label for="loginPassword">Password</label>
         <input type="password" id="loginPassword" placeholder="Enter password" required>
       </div>
-      <button onclick="login()">Login</button>
-      <p class="error" id="loginError" style="display: none;">Invalid email or password</p>
+      <button onclick="login()" class="form-button"><i class="fas fa-sign-in-alt nav-icon"></i>Login</button>
+      <p class="error" id="loginError">Invalid email or password</p>
       <p class="toggle" onclick="showSignup()">Don't have an account? <span>Sign up</span></p>
     </div>
 
     <!-- Signup Form -->
-    <div id="signupForm" style="display: none;">
-      <h2>Sign Up</h2>
+    <div id="signupForm" class="form-transition hidden">
+      <h2>Sign Up for ZapMail</h2>
       <div class="form-group">
         <label for="signupEmail">Email</label>
         <input type="email" id="signupEmail" placeholder="Enter email" required>
@@ -125,21 +48,21 @@
         <label for="signupPassword">Password</label>
         <input type="password" id="signupPassword" placeholder="Enter password" required>
       </div>
-      <button onclick="signup()">Sign Up</button>
-      <p class="error" id="signupError" style="display: none;">Email already exists or invalid input</p>
+      <button onclick="signup()" class="form-button"><i class="fas fa-user-plus nav-icon"></i>Sign Up</button>
+      <p class="error" id="signupError">Email already exists or invalid input</p>
       <p class="toggle" onclick="showLogin()">Already have an account? <span>Log in</span></p>
     </div>
   </div>
 
   <!-- Dashboard Container (hidden initially) -->
-  <div id="dashboardContainer" class="container" style="display: none;">
+  <div id="dashboardContainer" class="container hidden">
     <!-- Main Dashboard View -->
     <div class="dashboard">
-      <h2>Welcome to Your Dashboard</h2>
-      <button onclick="showEmailForm()">Send Email</button>
+      <h2>ZapMail Dashboard</h2>
+      <button id="showEmailBtn" onclick="showEmailForm()" class="form-button"><i class="fas fa-envelope nav-icon"></i>Send Email</button>
       
       <!-- Blockchain Health Dashboard -->
-      <div id="blockchainDashboard">
+      <div id="blockchainDashboard" class="blockchain-dashboard">
         <h3>Blockchain Health</h3>
         <div class="health-metrics">
           <div class="metric">
@@ -157,13 +80,13 @@
         </div>
       </div>
       
-      <button id="viewChainBtn" onclick="viewChain()">View Blockchain</button>
+      <button id="viewChainBtn" onclick="viewChain()" class="form-button"><i class="fas fa-link nav-icon"></i>View Blockchain</button>
       <div id="chain-display"></div>
     </div>
 
     <!-- Email Form View -->
-    <div id="emailForm" style="display: none;">
-      <h2>Send Email</h2>
+    <div id="emailForm" class="form-transition hidden">
+      <h2>Send Secure Email</h2>
       <div class="form-group">
         <label for="recipient">Recipient Email</label>
         <input type="email" id="recipient" placeholder="Enter recipient email" required>
@@ -174,11 +97,16 @@
       </div>
       <div class="form-group">
         <label for="message">Message</label>
-        <textarea id="message" rows="5" placeholder="Enter your message" required></textarea>
+        <textarea id="message" rows="5" placeholder="Enter your message or record voice"></textarea>
+        <div class="voice-controls">
+          <button id="startRecording" type="button" class="voice-button"><i class="fas fa-microphone nav-icon"></i></button>
+          <button id="stopRecording" type="button" disabled class="voice-button"><i class="fas fa-stop nav-icon"></i></button>
+          <audio id="voicePlayback" controls class="voice-playback"></audio>
+        </div>
       </div>
-      <button onclick="sendEmail()">Send Email</button>
-      <button onclick="backToDashboard()">Back to Dashboard</button>
-      <p class="error" id="emailError" style="display: none;">Please fill all fields correctly</p>
+      <button onclick="sendEmail()" class="form-button"><i class="fas fa-paper-plane nav-icon"></i>Send Email</button>
+      <button onclick="backToDashboard()" class="form-button"><i class="fas fa-arrow-left nav-icon"></i>Back to Dashboard</button>
+      <p class="error" id="emailError">Please fill all fields correctly</p>
     </div>
   </div>
 
