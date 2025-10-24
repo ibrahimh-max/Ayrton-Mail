@@ -1,19 +1,32 @@
-const express = require('express');
-const nodemailer = require('nodemailer');
-const crypto = require('crypto');
+import express from 'express';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
+import cors from 'cors';
+import { ethers } from 'ethers';
+import dotenv from 'dotenv';
+
+dotenv.config();
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // ===================
-// Blockchain Setup
+// IMPROVED Blockchain
 // ===================
 class Block {
   constructor(timestamp, emailData, previousHash = '') {
     this.timestamp = timestamp;
-    this.emailData = emailData;
+    this.emailData = this.encryptEmailData(emailData);
     this.previousHash = previousHash;
     this.hash = this.calculateHash();
     this.nonce = 0;
+  }
+
+  encryptEmailData(data) {
+    // Simple encryption for demo (use proper encryption in production)
+    const cipher = crypto.createCipher('aes-256-cbc', 'encryption-key');
+    let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
   }
 
   calculateHash() {
@@ -21,7 +34,7 @@ class Block {
       .createHash('sha256')
       .update(
         this.timestamp +
-        JSON.stringify(this.emailData) +
+        this.emailData +
         this.previousHash +
         this.nonce
       )
@@ -29,27 +42,22 @@ class Block {
   }
 
   mineBlock(difficulty) {
-    console.log("⛏️ Starting mining process...");
-    let attempts = 0;
+    console.log("⛏️ Mining block...");
     const startTime = Date.now();
+    let attempts = 0;
     
-    while (this.hash.substring(0, difficulty) !== Array(difficulty + 1).join("0")) {
+    while (this.hash.substring(0, difficulty) !== '0'.repeat(difficulty)) {
       this.nonce++;
       this.hash = this.calculateHash();
       attempts++;
       
-      if (attempts % 10000 === 0) {
-        process.stdout.clearLine();
-        process.stdout.cursorTo(0);
-        process.stdout.write(
-          `Mining: Attempt ${attempts} | Current hash: ${this.hash.substring(0, 15)}...`
-        );
+      if (attempts % 5000 === 0) {
+        process.stdout.write(`\rMining: ${attempts} attempts | Hash: ${this.hash.substring(0, 20)}...`);
       }
     }
     
-    const miningTime = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log(`\n✅ Block mined in ${miningTime}s after ${attempts} attempts`);
-    console.log(`🔗 Final hash: ${this.hash}`);
+    console.log(`\n✅ Block mined! ${attempts} attempts | ${((Date.now() - startTime)/1000).toFixed(2)}s`);
+    return this.hash;
   }
 }
 
@@ -57,35 +65,62 @@ class EmailBlockchain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
     this.pendingEmails = [];
-    this.difficulty = 2;
+    this.difficulty = 3; // Increased for better security simulation
   }
 
   createGenesisBlock() {
     return new Block(
       Date.now(),
-      { to: "genesis@example.com", subject: "Genesis Block", text: "Initial block in the chain" },
+      { 
+        from: "genesis@blockchainmail.com", 
+        to: "genesis@example.com", 
+        subject: "🏁 Genesis Block", 
+        message: "Welcome to Blockchain Email System" 
+      },
       "0"
     );
   }
 
   addEmailToPending(emailData) {
-    this.pendingEmails.push(emailData);
-    console.log(`📨 Email added to pending block: ${emailData.subject}`);
+    const emailRecord = {
+      id: crypto.randomBytes(16).toString('hex'),
+      timestamp: Date.now(),
+      ...emailData,
+      status: 'pending'
+    };
+    
+    this.pendingEmails.push(emailRecord);
+    console.log(`📨 Email queued: ${emailData.subject}`);
+    return emailRecord.id;
   }
 
   minePendingEmails() {
-    if (this.pendingEmails.length === 0) return;
+    if (this.pendingEmails.length === 0) {
+      console.log("⏳ No pending emails to mine");
+      return null;
+    }
 
+    console.log(`⛏️ Mining ${this.pendingEmails.length} emails...`);
     const block = new Block(
       Date.now(),
       this.pendingEmails,
       this.getLatestBlock().hash
     );
     
-    block.mineBlock(this.difficulty);
+    const blockHash = block.mineBlock(this.difficulty);
     this.chain.push(block);
+    
+    console.log(`✅ Block #${this.chain.length - 1} mined with ${this.pendingEmails.length} emails`);
+    
+    const minedEmails = [...this.pendingEmails];
     this.pendingEmails = [];
-    console.log(`⛏️ Mined block with ${block.emailData.length} emails`);
+    
+    return {
+      blockNumber: this.chain.length - 1,
+      blockHash,
+      emails: minedEmails,
+      timestamp: block.timestamp
+    };
   }
 
   getLatestBlock() {
@@ -97,103 +132,200 @@ class EmailBlockchain {
       const current = this.chain[i];
       const previous = this.chain[i - 1];
 
-      if (current.hash !== current.calculateHash()) return false;
-      if (current.previousHash !== previous.hash) return false;
+      if (current.hash !== current.calculateHash()) {
+        console.log(`❌ Block ${i} hash invalid`);
+        return false;
+      }
+      if (current.previousHash !== previous.hash) {
+        console.log(`❌ Block ${i} previous hash mismatch`);
+        return false;
+      }
     }
     return true;
+  }
+
+  getBlockchainStats() {
+    return {
+      totalBlocks: this.chain.length,
+      totalEmails: this.chain.reduce((acc, block) => acc + (block.emailData ? 1 : 0), 0),
+      pendingEmails: this.pendingEmails.length,
+      chainValid: this.isChainValid(),
+      latestBlock: this.getLatestBlock().hash.substring(0, 16) + '...'
+    };
   }
 }
 
 const emailChain = new EmailBlockchain();
 
 // ===================
-// Email Configuration
+// Email Setup
 // ===================
-const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransporter({
   host: 'smtp.ethereal.email',
   port: 587,
+  secure: false,
   auth: {
-    user: 'mekhi.bashirian@ethereal.email',
-    pass: 'ghXA8QmXzxeMkG5Qzs'
+    user: process.env.ETHEREAL_EMAIL,
+    pass: process.env.ETHEREAL_PASS
   }
 });
 
 // ===================
 // Middleware
 // ===================
-app.use(express.static('public'));
+app.use(cors());
 app.use(express.json());
+app.use(express.static('public'));
 
 // ===================
-// API Endpoints
+// API Routes
 // ===================
-app.post('/send-email', (req, res) => {
-  const { to, subject, text } = req.body;
+app.post('/api/send-email', async (req, res) => {
+  try {
+    const { to, subject, text, fromName = "Blockchain Mail" } = req.body;
 
-  // Add to blockchain
-  emailChain.addEmailToPending({ to, subject, text });
-  emailChain.minePendingEmails();
-
-  // Send actual email
-  const mailOptions = {
-    from: '"SecureMail" <mekhi.bashirian@ethereal.email>',
-    to,
-    subject: `[Secured] ${subject}`,
-    text: `${text}\n\n---\nThis email is recorded on our blockchain. Block hash: ${emailChain.getLatestBlock().hash}`
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error("❌ Email failed:", error);
-      return res.status(500).json({
+    if (!to || !subject || !text) {
+      return res.status(400).json({
         success: false,
-        error: "Email delivery failed",
-        blockchainStatus: "Email recorded in pending block"
+        error: "Missing required fields: to, subject, text"
       });
     }
+
+    // 1. Add to blockchain
+    const emailId = emailChain.addEmailToPending({
+      from: `${fromName} <${process.env.ETHEREAL_EMAIL}>`,
+      to,
+      subject,
+      message: text,
+      emailId: crypto.randomBytes(8).toString('hex')
+    });
+
+    // 2. Mine immediately for demo (in production, batch mine)
+    const minedBlock = emailChain.minePendingEmails();
+
+    // 3. Send actual email
+    const mailOptions = {
+      from: `"${fromName}" <${process.env.ETHEREAL_EMAIL}>`,
+      to,
+      subject: `🔐 [Blockchain Secured] ${subject}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">${subject}</h2>
+          <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p style="margin: 0;">${text.replace(/\n/g, '<br>')}</p>
+          </div>
+          <div style="background: #e8f5e8; padding: 15px; border-radius: 5px; font-size: 12px; color: #555;">
+            <strong>🔗 Blockchain Verification:</strong><br>
+            • Email ID: ${emailId}<br>
+            • Block: #${minedBlock?.blockNumber || 'Pending'}<br>
+            • Hash: ${minedBlock?.blockHash?.substring(0, 16) || 'Processing...'}<br>
+            • Timestamp: ${new Date().toISOString()}
+          </div>
+          <p style="font-size: 11px; color: #888; margin-top: 20px;">
+            This email is cryptographically secured and recorded on our blockchain.
+          </p>
+        </div>
+      `
+    };
+
+    const emailResult = await transporter.sendMail(mailOptions);
     
     res.json({
       success: true,
       message: "Email sent and recorded on blockchain",
-      block: emailChain.getLatestBlock(),
-      previewUrl: nodemailer.getTestMessageUrl(info)
+      emailId,
+      blockchain: {
+        blockNumber: minedBlock?.blockNumber,
+        blockHash: minedBlock?.blockHash,
+        transactionHash: crypto.randomBytes(32).toString('hex') // Simulated TX hash
+      },
+      emailPreview: nodemailer.getTestMessageUrl(emailResult),
+      timestamp: new Date().toISOString()
     });
-  });
+
+  } catch (error) {
+    console.error("❌ Send email error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to send email",
+      details: error.message
+    });
+  }
 });
 
-app.get('/blockchain', (req, res) => {
+app.get('/api/blockchain', (req, res) => {
   res.json({
-    chain: emailChain.chain,
-    pendingEmails: emailChain.pendingEmails,
-    isValid: emailChain.isChainValid(),
-    length: emailChain.chain.length
+    ...emailChain.getBlockchainStats(),
+    chain: emailChain.chain.map(block => ({
+      timestamp: block.timestamp,
+      hash: block.hash,
+      previousHash: block.previousHash,
+      nonce: block.nonce,
+      emailCount: block.emailData ? 1 : 0
+    }))
   });
 });
 
-app.get('/block/:index', (req, res) => {
-  const block = emailChain.chain[req.params.index];
-  if (!block) return res.status(404).send('Block not found');
+app.get('/api/block/:index', (req, res) => {
+  const blockIndex = parseInt(req.params.index);
+  const block = emailChain.chain[blockIndex];
   
+  if (!block) {
+    return res.status(404).json({ error: "Block not found" });
+  }
+
   res.json({
-    index: req.params.index,
-    ...block
+    index: blockIndex,
+    timestamp: block.timestamp,
+    hash: block.hash,
+    previousHash: block.previousHash,
+    nonce: block.nonce,
+    difficulty: emailChain.difficulty,
+    emailData: block.emailData // Encrypted in real implementation
   });
+});
+
+app.get('/api/verify-email/:emailId', (req, res) => {
+  // Verify if email exists in blockchain
+  const { emailId } = req.params;
+  
+  for (let i = 0; i < emailChain.chain.length; i++) {
+    const block = emailChain.chain[i];
+    // In real implementation, you'd decrypt and search
+    if (block.emailData && block.emailData.includes(emailId)) {
+      return res.json({
+        exists: true,
+        blockNumber: i,
+        blockHash: block.hash,
+        verified: true
+      });
+    }
+  }
+  
+  res.json({ exists: false, verified: false });
 });
 
 // ===================
-// Server Startup
+// Start Server
 // ===================
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`🔗 Blockchain ready with genesis block`);
-  console.log(`✉️  Email endpoint: POST /send-email`);
-  console.log(`⛓️  Blockchain explorer: GET /blockchain`);
+  console.log(`
+🚀 BLOCKCHAIN EMAIL SERVER STARTED
+📍 Port: ${PORT}
+📧 Ethereal Email: ${process.env.ETHEREAL_EMAIL}
+⛓️  Blockchain: Ready (${emailChain.difficulty} difficulty)
+🔗 API Endpoints:
+   • POST /api/send-email
+   • GET  /api/blockchain
+   • GET  /api/block/{index}
+   • GET  /api/verify-email/{id}
+  `);
 });
 
-// Mine pending emails every 5 minutes
+// Auto-mine every 2 minutes
 setInterval(() => {
   if (emailChain.pendingEmails.length > 0) {
-    console.log("⏰ Mining pending emails...");
+    console.log("🕒 Auto-mining pending emails...");
     emailChain.minePendingEmails();
   }
-}, 300000);
+}, 120000);
