@@ -10,23 +10,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ===================
-// IMPROVED Blockchain
+// FIXED Blockchain (No Encryption Error)
 // ===================
 class Block {
   constructor(timestamp, emailData, previousHash = '') {
     this.timestamp = timestamp;
-    this.emailData = this.encryptEmailData(emailData);
+    this.emailData = emailData; // Store plain data for now
     this.previousHash = previousHash;
     this.hash = this.calculateHash();
     this.nonce = 0;
-  }
-
-  encryptEmailData(data) {
-    // Simple encryption for demo (use proper encryption in production)
-    const cipher = crypto.createCipher('aes-256-cbc', 'encryption-key');
-    let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return encrypted;
   }
 
   calculateHash() {
@@ -34,7 +26,7 @@ class Block {
       .createHash('sha256')
       .update(
         this.timestamp +
-        this.emailData +
+        JSON.stringify(this.emailData) +
         this.previousHash +
         this.nonce
       )
@@ -65,7 +57,7 @@ class EmailBlockchain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
     this.pendingEmails = [];
-    this.difficulty = 3; // Increased for better security simulation
+    this.difficulty = 2; // Reduced for faster mining
   }
 
   createGenesisBlock() {
@@ -147,7 +139,7 @@ class EmailBlockchain {
   getBlockchainStats() {
     return {
       totalBlocks: this.chain.length,
-      totalEmails: this.chain.reduce((acc, block) => acc + (block.emailData ? 1 : 0), 0),
+      totalEmails: this.chain.reduce((acc, block) => acc + (Array.isArray(block.emailData) ? block.emailData.length : 1), 0),
       pendingEmails: this.pendingEmails.length,
       chainValid: this.isChainValid(),
       latestBlock: this.getLatestBlock().hash.substring(0, 16) + '...'
@@ -165,8 +157,8 @@ const transporter = nodemailer.createTransporter({
   port: 587,
   secure: false,
   auth: {
-    user: process.env.ETHEREAL_EMAIL,
-    pass: process.env.ETHEREAL_PASS
+    user: process.env.ETHEREAL_EMAIL || 'mekhi.bashirian@ethereal.email',
+    pass: process.env.ETHEREAL_PASS || 'ghXA8QmXzxeMkG5Qzs'
   }
 });
 
@@ -193,19 +185,18 @@ app.post('/api/send-email', async (req, res) => {
 
     // 1. Add to blockchain
     const emailId = emailChain.addEmailToPending({
-      from: `${fromName} <${process.env.ETHEREAL_EMAIL}>`,
+      from: `${fromName} <${process.env.ETHEREAL_EMAIL || 'mekhi.bashirian@ethereal.email'}>`,
       to,
       subject,
-      message: text,
-      emailId: crypto.randomBytes(8).toString('hex')
+      message: text
     });
 
-    // 2. Mine immediately for demo (in production, batch mine)
+    // 2. Mine immediately for demo
     const minedBlock = emailChain.minePendingEmails();
 
     // 3. Send actual email
     const mailOptions = {
-      from: `"${fromName}" <${process.env.ETHEREAL_EMAIL}>`,
+      from: `"${fromName}" <${process.env.ETHEREAL_EMAIL || 'mekhi.bashirian@ethereal.email'}>`,
       to,
       subject: `🔐 [Blockchain Secured] ${subject}`,
       html: `
@@ -237,7 +228,7 @@ app.post('/api/send-email', async (req, res) => {
       blockchain: {
         blockNumber: minedBlock?.blockNumber,
         blockHash: minedBlock?.blockHash,
-        transactionHash: crypto.randomBytes(32).toString('hex') // Simulated TX hash
+        transactionHash: crypto.randomBytes(32).toString('hex')
       },
       emailPreview: nodemailer.getTestMessageUrl(emailResult),
       timestamp: new Date().toISOString()
@@ -261,7 +252,7 @@ app.get('/api/blockchain', (req, res) => {
       hash: block.hash,
       previousHash: block.previousHash,
       nonce: block.nonce,
-      emailCount: block.emailData ? 1 : 0
+      emailCount: Array.isArray(block.emailData) ? block.emailData.length : 1
     }))
   });
 });
@@ -281,24 +272,26 @@ app.get('/api/block/:index', (req, res) => {
     previousHash: block.previousHash,
     nonce: block.nonce,
     difficulty: emailChain.difficulty,
-    emailData: block.emailData // Encrypted in real implementation
+    emailData: block.emailData
   });
 });
 
 app.get('/api/verify-email/:emailId', (req, res) => {
-  // Verify if email exists in blockchain
   const { emailId } = req.params;
   
   for (let i = 0; i < emailChain.chain.length; i++) {
     const block = emailChain.chain[i];
-    // In real implementation, you'd decrypt and search
-    if (block.emailData && block.emailData.includes(emailId)) {
-      return res.json({
-        exists: true,
-        blockNumber: i,
-        blockHash: block.hash,
-        verified: true
-      });
+    if (Array.isArray(block.emailData)) {
+      const foundEmail = block.emailData.find(email => email.id === emailId);
+      if (foundEmail) {
+        return res.json({
+          exists: true,
+          blockNumber: i,
+          blockHash: block.hash,
+          verified: true,
+          email: foundEmail
+        });
+      }
     }
   }
   
@@ -312,7 +305,7 @@ app.listen(PORT, () => {
   console.log(`
 🚀 BLOCKCHAIN EMAIL SERVER STARTED
 📍 Port: ${PORT}
-📧 Ethereal Email: ${process.env.ETHEREAL_EMAIL}
+📧 Ethereal Email: ${process.env.ETHEREAL_EMAIL || 'mekhi.bashirian@ethereal.email'}
 ⛓️  Blockchain: Ready (${emailChain.difficulty} difficulty)
 🔗 API Endpoints:
    • POST /api/send-email
