@@ -73,21 +73,31 @@ function logout() {
 }
 
 // Dashboard
+// REPLACE THE ENTIRE showDashboard() FUNCTION WITH THIS:
 function showDashboard() {
   const authContainer = document.getElementById('authContainer');
   const dashboardContainer = document.getElementById('dashboardContainer');
   const navBar = document.getElementById('navBar');
   const emailForm = document.getElementById('emailForm');
-  const showEmailBtn = document.getElementById('showEmailBtn');
-  
+  const dashboard = document.querySelector('.dashboard');
+  pwd
+  // Hide auth
+  authContainer.classList.add('hidden');
   authContainer.style.display = 'none';
-  dashboardContainer.style.display = 'block';
+  
+  // Show dashboard container
   dashboardContainer.classList.remove('hidden');
-  dashboardContainer.style.opacity = '1';
+  dashboardContainer.style.display = 'block';
+  
+  // Show nav bar
+  navBar.classList.remove('hidden');
   navBar.style.display = 'block';
-  emailForm.style.display = 'none';
+  
+  // Show main dashboard, hide email form
+  dashboard.style.display = 'block';
+  dashboard.classList.remove('hidden');
   emailForm.classList.add('hidden');
-  showEmailBtn.style.display = 'block'; // Ensure "Send Email" button is visible on dashboard
+  emailForm.style.display = 'none';
   
   updateBlockchainStats();
   setInterval(updateBlockchainStats, 2000);
@@ -335,5 +345,5 @@ window.onload = function() {
     });
   });
 
-  document.querySelector('form')?.addEventListener('submit', e => e.preventDefault());
+ 
 };

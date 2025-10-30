@@ -32,7 +32,7 @@
         <label for="loginPassword">Password</label>
         <input type="password" id="loginPassword" placeholder="Enter password" required>
       </div>
-      <button onclick="login()" class="form-button"><i class="fas fa-sign-in-alt nav-icon"></i>Login</button>
+      <button type="button" onclick="login()" class="form-button"><i class="fas fa-sign-in-alt nav-icon"></i>Login</button>
       <p class="error" id="loginError">Invalid email or password</p>
       <p class="toggle" onclick="showSignup()">Don't have an account? <span>Sign up</span></p>
     </div>
@@ -48,7 +48,7 @@
         <label for="signupPassword">Password</label>
         <input type="password" id="signupPassword" placeholder="Enter password please " required>
       </div>
-      <button onclick="signup()" class="form-button"><i class="fas fa-user-plus nav-icon"></i>Sign Up</button>
+      <button type="button" onclick="signup()" class="form-button"><i class="fas fa-user-plus nav-icon"></i>Sign Up</button>
       <p class="error" id="signupError">Email already exists or invalid input</p>
       <p class="toggle" onclick="showLogin()">Already have an account? <span>Log in</span></p>
     </div>
@@ -104,8 +104,8 @@
           <audio id="voicePlayback" controls class="voice-playback"></audio>
         </div>
       </div>
-      <button onclick="sendEmail()" class="form-button"><i class="fas fa-paper-plane nav-icon"></i>Send Email</button>
-      <button onclick="backToDashboard()" class="form-button"><i class="fas fa-arrow-left nav-icon"></i>Back to Dashboard</button>
+      <button type="button" onclick="sendEmail()" class="form-button"><i class="fas fa-paper-plane nav-icon"></i>Send Email</button>
+      <button type="button" onclick="backToDashboard()" class="form-button"><i class="fas fa-arrow-left nav-icon"></i>Back to Dashboard</button>
       <p class="error" id="emailError">Please fill all fields correctly</p>
     </div>
   </div>

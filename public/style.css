@@ -96,18 +96,20 @@ body {
   opacity: 1;
 }
 
-#emailForm,
-#emailForm h2,
-#emailForm label,
-#emailForm .form-button,
-#emailForm .error,
-#emailForm .voice-controls,
-#emailForm .voice-button,
-#emailForm textarea,
-#emailForm input {
-  color: #39FF14 !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+/* ADD THIS NEW SECTION: */
+#emailForm.hidden {
+  display: none !important;
+}
+
+#emailForm:not(.hidden) {
+  display: block !important;
+}
+
+.dashboard.hidden {
+  display: none !important;
+}
+
+.dashboard:not(.hidden) {
   display: block !important;
 }
 
