@@ -89,7 +89,7 @@ class EmailBlockchain {
     this.chain.push(block);
     
     console.log(`✅ Block #${this.chain.length - 1} mined successfully!`);
-    
+
     const minedBlock = {
       blockNumber: this.chain.length - 1,
       blockHash: block.hash,
@@ -121,14 +121,15 @@ const emailChain = new EmailBlockchain();
 // ===================
 // Email Setup
 // ===================
-const transporter = nodemailer.createTransporter({
-  host: 'smtp.ethereal.email',
-  port: 587,
-  auth: {
-    user: 'mekhi.bashirian@ethereal.email',
-    pass: 'ghXA8QmXzxeMkG5Qzs'
-  }
-});
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: 'mekhi.bashirian@ethereal.email',
+      pass: 'ghXA8QmXzxeMkG5Qzs'
+    }
+  });
 
 // ===================
 // Middleware
